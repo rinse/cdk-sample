@@ -11,16 +11,25 @@ import {Construct} from 'constructs';
 import {EXPORT_NAME_ECR_REPOSITORY_URI, IP_ADDR} from "./constants";
 import * as path from "path";
 
+const ServicePrincipals = {
+    ECS_TASKS: "ecs-tasks.amazonaws.com",
+}
+
 export class CdkSampleInfraStack extends Stack {
     constructor(scope: Construct, id: string, props?: StackProps) {
         super(scope, id, props);
         const vpc = new ec2.Vpc(this, "VPC");
         const cluster = new ecs.Cluster(this, "Cluster", {vpc});
         const taskExecutionRole = new iam.Role(this, "TaskExecutionRole", {
-            assumedBy: new iam.ServicePrincipal("ecs-tasks.amazonaws.com"),
+            assumedBy: new iam.ServicePrincipal(ServicePrincipals.ECS_TASKS),
         });
         const taskExecutionManagedPolicy = "service-role/AmazonECSTaskExecutionRolePolicy";
         taskExecutionRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName(taskExecutionManagedPolicy));
+        const taskRole = new iam.Role(this, "TaskRole", {
+            assumedBy: new iam.ServicePrincipal(ServicePrincipals.ECS_TASKS),
+        });
+        // Add policies to run the application
+        // taskRole.addManagedPolicy()
         const fargateService = new ecsPatterns.ApplicationLoadBalancedFargateService(this, "ECSService", {
             cluster,
             cpu: 256,
@@ -30,6 +39,7 @@ export class CdkSampleInfraStack extends Stack {
                 image: ecs.ContainerImage.fromRegistry(Fn.importValue(EXPORT_NAME_ECR_REPOSITORY_URI)),
                 containerPort: 8080,
                 executionRole: taskExecutionRole,
+                taskRole: taskRole,
             },
         });
 
