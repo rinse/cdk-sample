@@ -12,6 +12,9 @@ fun main() {
             get("/api/v1/healthCheck") {
                 call.respondText("The server is healthy.")
             }
+            get("/api/v1/message") {
+                call.respondText("Hello, world")
+            }
         }
     }.start(wait = true)
 }
