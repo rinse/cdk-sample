@@ -35,6 +35,7 @@ export class CdkSampleInfraStack extends Stack {
             cpu: 256,
             memoryLimitMiB: 512,
             openListener: false,
+            minHealthyPercent: 100,
             taskImageOptions: {
                 image: ecs.ContainerImage.fromRegistry(Fn.importValue(EXPORT_NAME_ECR_REPOSITORY_URI)),
                 containerPort: 8080,
